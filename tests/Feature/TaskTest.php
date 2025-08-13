@@ -33,5 +33,40 @@ class TaskTest extends TestCase
         $this->assertDatabaseHas('tasks', ['title' => 'Test Task']);
     }
 
-    // Testes para show, update e delete podem ser adicionados também
+    public function test_can_show_task()
+    {
+        $task = Task::factory()->create();
+
+        $response = $this->getJson("/api/tasks/{$task->id}");
+
+        $response->assertStatus(200)
+                 ->assertJsonFragment(['title' => $task->title]);
+    }
+
+    public function test_can_update_task()
+    {
+        $task = Task::factory()->create();
+
+        $data = [
+            'title' => 'Updated Title',
+            'description' => 'Updated description',
+            'completed' => true,
+        ];
+
+        $response = $this->putJson("/api/tasks/{$task->id}", $data);
+
+        $response->assertStatus(200)
+                 ->assertJsonFragment(['title' => 'Updated Title']);
+        $this->assertDatabaseHas('tasks', ['id' => $task->id, 'title' => 'Updated Title']);
+    }
+
+    public function test_can_delete_task()
+    {
+        $task = Task::factory()->create();
+
+        $response = $this->deleteJson("/api/tasks/{$task->id}");
+
+        $response->assertStatus(204);
+        $this->assertDatabaseMissing('tasks', ['id' => $task->id]);
+    }
 }
